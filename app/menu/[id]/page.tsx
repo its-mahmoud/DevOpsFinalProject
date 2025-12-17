@@ -51,34 +51,35 @@ export default function MealDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
 
+  // ===== States =====
   const [meal, setMeal] = useState<Meal | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >({});
+  const [imgSrc, setImgSrc] = useState<string>("/images/fallbackimage.jpg");
 
-  /* ---------- Fetch meal ---------- */
+  // ===== Fetch meal =====
   useEffect(() => {
     const fetchMeal = async () => {
       const { data, error } = await supabase
         .from("menu_items")
         .select(
           `
-    id,
-    name,
-    description,
-    price,
-    options,
-    menu_item_images ( image_url ),
-    menu_item_categories (
-      categories (
-        id,
-        name
-      )
-    )
-  `
+          id,
+          name,
+          description,
+          price,
+          options,
+          menu_item_images ( image_url ),
+          menu_item_categories (
+            categories (
+              id,
+              name
+            )
+          )
+        `
         )
         .eq("id", id)
         .single();
@@ -106,6 +107,14 @@ export default function MealDetailsPage() {
     fetchMeal();
   }, [id]);
 
+  // ===== Update image when meal changes =====
+  useEffect(() => {
+    if (meal?.menu_item_images?.[0]?.image_url) {
+      setImgSrc(meal.menu_item_images[0].image_url);
+    }
+  }, [meal]);
+
+  // ===== Conditional rendering (بعد كل hooks فقط) =====
   if (loading) {
     return <div className="text-center mt-40">جاري التحميل...</div>;
   }
@@ -123,10 +132,6 @@ export default function MealDetailsPage() {
       </div>
     );
   }
-
-  /* ---------- Image ---------- */
-  const image =
-    meal.menu_item_images?.[0]?.image_url || "/images/fallbackimage.jpg";
 
   /* ---------- Price calculation ---------- */
   const optionsPrice =
@@ -157,15 +162,12 @@ export default function MealDetailsPage() {
           <div className="p-6">
             <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
               <Image
-                src={image}
+                src={imgSrc}
                 alt={meal.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "/images/fallbackimage.jpg";
-                }}
+                onError={() => setImgSrc("/images/fallbackimage.jpg")}
               />
             </div>
           </div>
