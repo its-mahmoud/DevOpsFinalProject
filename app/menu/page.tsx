@@ -34,6 +34,42 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<number | "all">("all");
 
   useEffect(() => {
+    const el = document.getElementById("category-scroll");
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+  useEffect(() => {
+    const container = document.getElementById("category-scroll");
+    if (!container) return;
+
+    const selector =
+      activeCategory === "all"
+        ? '[data-category="all"]'
+        : `[data-category="${activeCategory}"]`;
+
+    const activeEl = container.querySelector(selector) as HTMLElement | null;
+
+    if (activeEl) {
+      const elLeft = activeEl.offsetLeft;
+      const elWidth = activeEl.offsetWidth;
+      const containerWidth = container.clientWidth;
+
+      container.scrollTo({
+        left: elLeft - containerWidth / 2 + elWidth / 2,
+        behavior: "smooth",
+      });
+    }
+  }, [activeCategory]);
+
+  useEffect(() => {
     const fetchCategories = async () => {
       const { data, error } = await supabase
         .from("categories")
@@ -100,33 +136,88 @@ export default function MenuPage() {
         قائمة الطعام
       </h1>
 
-      {/* Categories */}
-      <div className="mt-8 overflow-x-auto">
-        <div className="mx-auto flex w-max gap-3 px-4">
+      {/* ================= Categories (Sticky + Scroll) ================= */}
+      <div className="sticky top-[50px] z-40 bg-[whitesmoke] py-4">
+        <div className="relative max-w-full">
+          {/* سهم لليسار */}
           <button
-            onClick={() => setActiveCategory("all")}
-            className={`rounded-full px-5 py-2 text-sm font-semibold ${
-              activeCategory === "all"
-                ? "bg-[#DC2B3F] text-white"
-                : "bg-gray-200"
-            }`}
+            onClick={() => {
+              document
+                .getElementById("category-scroll")
+                ?.scrollBy({ left: -200, behavior: "smooth" });
+            }}
+            className="
+        hidden md:flex
+        absolute left-2 top-1/2 -translate-y-1/2
+        z-50
+        bg-white shadow-md
+        w-9 h-9 rounded-full
+        items-center justify-center
+        hover:bg-gray-100
+      "
           >
-            الكل
+            ›
           </button>
 
-          {categories.map((cat) => (
+          {/* سهم لليمين */}
+          <button
+            onClick={() => {
+              document
+                .getElementById("category-scroll")
+                ?.scrollBy({ left: 200, behavior: "smooth" });
+            }}
+            className="
+        hidden md:flex
+        absolute right-2 top-1/2 -translate-y-1/2
+        z-50
+        bg-white shadow-md
+        w-9 h-9 rounded-full
+        items-center justify-center
+        hover:bg-gray-100
+      "
+          >
+            ‹
+          </button>
+
+          {/* Chips container */}
+          <div
+            id="category-scroll"
+            className="
+        mx-auto flex gap-3 px-12
+        overflow-x-auto
+        scroll-smooth
+        scrollbar-none
+      "
+            style={{ scrollbarWidth: "none" }}
+          >
+            {/* الكل */}
             <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                activeCategory === cat.id
+              data-category="all"
+              onClick={() => setActiveCategory("all")}
+              className={`category-chip rounded-full px-5 py-2 text-sm font-semibold whitespace-nowrap ${
+                activeCategory === "all"
                   ? "bg-[#DC2B3F] text-white"
                   : "bg-gray-200 hover:bg-gray-300"
               }`}
             >
-              {cat.name}
+              الكل
             </button>
-          ))}
+
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                data-category={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`category-chip rounded-full px-5 py-2 text-sm font-semibold whitespace-nowrap transition ${
+                  activeCategory === cat.id
+                    ? "bg-[#DC2B3F] text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -140,7 +231,7 @@ export default function MenuPage() {
 
           return (
             <MealCard
-              id={item.id} 
+              id={item.id}
               key={item.id}
               name={item.name}
               description={item.description || ""}
