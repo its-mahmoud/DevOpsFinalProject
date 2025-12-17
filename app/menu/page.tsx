@@ -131,7 +131,7 @@ export default function MenuPage() {
       </div>
 
       {/* Menu Grid */}
-      <section className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-8 px-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="mx-auto mt-12 grid max-w-[90rem] grid-cols-1 gap-8 px-6 sm:grid-cols-2 lg:grid-cols-4">
         {filteredItems.map((item) => {
           const image =
             item.menu_item_images?.sort(
