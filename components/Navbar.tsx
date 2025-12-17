@@ -20,18 +20,17 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
   }, [variant]);
 
   const floatingStyle =
-    "top-0 bg-white shadow-md rounded-b-[20px] px-[30px] py-[5px]";
+    "top-0 bg-white shadow-md rounded-b-[20px] px-[30px] py-[5px] w-[100%]";
 
   const defaultStyle = scrolled
-    ? "top-0 bg-white shadow-md rounded-b-[20px] px-[30px] py-[5px]"
-    : "top-[5vh] bg-white/90 shadow-xl rounded-[20px] px-[25px] py-[15px]";
+    ? "top-0 bg-white shadow-md rounded-b-[20px] px-[30px] py-[5px] w-[100%]"
+    : "top-[5vh] bg-white/90 shadow-xl rounded-[20px] px-[25px] py-[15px] w-[90%]";
 
   return (
     <div
       dir="rtl"
       className={`
         fixed left-1/2 -translate-x-1/2 z-[999]
-        w-[90%]
         flex items-center justify-between
         transition-all duration-300
         ${variant === "floating" ? floatingStyle : defaultStyle}
