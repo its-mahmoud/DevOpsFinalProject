@@ -54,6 +54,7 @@ export default function MealDetailsPage() {
   // ===== States =====
   const [meal, setMeal] = useState<Meal | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
@@ -239,36 +240,57 @@ export default function MealDetailsPage() {
               </div>
             ))}
 
-            {/* Price */}
-            <div className="text-3xl font-bold text-[#DC2B3F] mb-6">
-              {totalPrice} ₪
+            {/* Notes */}
+            <div className="mb-6">
+              <h4 className="font-bold mb-2">ملاحظات على الطلب</h4>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="مثال: بدون بصل، زيادة صوص..."
+                rows={4}
+                className="
+      w-full rounded-lg border border-gray-200
+      p-3 text-sm resize-none
+      focus:outline-none focus:ring-2 focus:ring-[#DC2B3F]/40
+    "
+              />
             </div>
 
-            {/* Quantity */}
-            <div className="flex items-center gap-4 mb-6">
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 bg-[#DC2B3F] text-white rounded       flex items-center justify-center
-"
-              >
-                <Plus />
-              </button>
+            {/* ===== Price + Quantity + Add to Cart ===== */}
+            <div className="flex items-center gap-4 mt-8">
 
-              <span className="text-lg font-bold">{quantity}</span>
-
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity === 1}
-                className="w-10 h-10 bg-[#DC2B3F] text-white rounded       flex items-center justify-center
- disabled:opacity-50"
-              >
-                <Minus />
+              {/* Add to Cart */}
+              <button className="flex-1 bg-[#DC2B3F] text-white py-3 rounded-lg hover:bg-[#C02436] font-bold">
+                إضافة إلى السلة
               </button>
+              {/* Quantity */}
+              <div className="flex items-center gap-2 border rounded-lg px-3 py-2">
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-8 h-8 bg-[#DC2B3F] text-white rounded flex items-center justify-center"
+                >
+                  <Plus size={16} />
+                </button>
+
+                <span className="text-base font-bold w-6 text-center">
+                  {quantity}
+                </span>
+
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity === 1}
+                  className="w-8 h-8 bg-[#DC2B3F] text-white rounded flex items-center justify-center disabled:opacity-50"
+                >
+                  <Minus size={16} />
+                </button>
+              </div>
+
+              {/* Price */}
+              <div className="text-2xl font-extrabold text-[#DC2B3F] whitespace-nowrap">
+                {totalPrice} ₪
+              </div>
             </div>
-
-            <button className="w-full bg-[#DC2B3F] text-white py-3 rounded-lg hover:bg-[#C02436]">
-              إضافة إلى السلة
-            </button>
+            
           </div>
         </div>
       </main>
