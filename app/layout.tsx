@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Beiruti, Poppins } from "next/font/google";
+import { Toaster } from "sonner";
 
 const beiruti = Beiruti({
   subsets: ["arabic"],
@@ -24,6 +25,7 @@ export default function RootLayout({
         className={`${beiruti.variable} ${poppins.variable} bg-[whitesmoke]`}
       >
         {children}
+        <Toaster position="top-center" />
       </body>
     </html>
   );
