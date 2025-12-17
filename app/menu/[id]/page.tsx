@@ -21,6 +21,13 @@ type MealOption = {
   values: OptionValue[];
 };
 
+type MealCategory = {
+  categories: {
+    id: number;
+    name: string;
+  };
+};
+
 type Meal = {
   id: number;
   name: string;
@@ -28,6 +35,7 @@ type Meal = {
   price: number;
   options: MealOption[] | null;
   menu_item_images: { image_url: string }[];
+  menu_item_categories: MealCategory[];
 };
 
 /* ================= Page ================= */
@@ -51,13 +59,19 @@ export default function MealDetailsPage() {
         .from("menu_items")
         .select(
           `
-          id,
-          name,
-          description,
-          price,
-          options,
-          menu_item_images ( image_url )
-        `
+    id,
+    name,
+    description,
+    price,
+    options,
+    menu_item_images ( image_url ),
+    menu_item_categories (
+      categories (
+        id,
+        name
+      )
+    )
+  `
         )
         .eq("id", id)
         .single();
@@ -131,8 +145,34 @@ export default function MealDetailsPage() {
           </div>
 
           {/* ================= Info ================= */}
-          <div className="p-8">
+          <div className="p-8 lg:border-r lg:border-[#DC2B3F]/40">
             <h1 className="text-3xl font-extrabold mb-4">{meal.name}</h1>
+            {/* ===== Categories Badges ===== */}
+            {meal.menu_item_categories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-5">
+                {meal.menu_item_categories.flatMap((mc) => {
+                  if (!mc.categories) return [];
+
+                  const categoriesArray = Array.isArray(mc.categories)
+                    ? mc.categories
+                    : [mc.categories];
+
+                  return categoriesArray.map((cat) => (
+                    <span
+                      key={cat.id}
+                      className="
+            text-xs font-semibold
+            px-3 py-1 rounded-full
+            bg-[#DC2B3F]/10 text-[#DC2B3F]
+          "
+                    >
+                      {cat.name}
+                    </span>
+                  ));
+                })}
+              </div>
+            )}
+            {/* ===== meal descr ===== */}
 
             {meal.description && (
               <p className="text-gray-600 mb-6">{meal.description}</p>
