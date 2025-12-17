@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import { supabase } from "../../../lib/supabaseClient";
 import { Plus, Minus, ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 /* ================= Types ================= */
 
@@ -38,6 +39,10 @@ type Meal = {
   options: MealOption[] | null;
   menu_item_images: { image_url: string }[];
   menu_item_categories: MealCategory[];
+};
+
+type RawMealCategory = {
+  categories: Category | Category[] | null;
 };
 
 /* ================= Page ================= */
@@ -81,7 +86,9 @@ export default function MealDetailsPage() {
       if (!error && data) {
         const normalizedMeal: Meal = {
           ...data,
-          menu_item_categories: data.menu_item_categories.map((mc: any) => ({
+          menu_item_categories: (
+            data.menu_item_categories as RawMealCategory[]
+          ).map((mc) => ({
             categories: mc.categories
               ? Array.isArray(mc.categories)
                 ? mc.categories
@@ -148,14 +155,17 @@ export default function MealDetailsPage() {
         <div className="bg-white rounded-2xl shadow-lg grid lg:grid-cols-2 overflow-hidden">
           {/* ================= Image (1:1) ================= */}
           <div className="p-6">
-            <div className="aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
-              <img
+            <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
+              <Image
                 src={image}
                 alt={meal.name}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = "/images/fallbackimage.jpg";
+                  (e.target as HTMLImageElement).src =
+                    "/images/fallbackimage.jpg";
                 }}
-                className="w-full h-full object-cover"
               />
             </div>
           </div>
