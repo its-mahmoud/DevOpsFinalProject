@@ -140,7 +140,7 @@ export default function MenuPage() {
 
           return (
             <MealCard
-              id={item.id} // 👈 مهم
+              id={item.id} 
               key={item.id}
               name={item.name}
               description={item.description || ""}
