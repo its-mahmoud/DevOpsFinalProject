@@ -21,11 +21,13 @@ type MealOption = {
   values: OptionValue[];
 };
 
+type Category = {
+  id: number;
+  name: string;
+};
+
 type MealCategory = {
-  categories: {
-    id: number;
-    name: string;
-  };
+  categories: Category[];
 };
 
 type Meal = {
@@ -76,7 +78,21 @@ export default function MealDetailsPage() {
         .eq("id", id)
         .single();
 
-      if (!error) setMeal(data);
+      if (!error && data) {
+        const normalizedMeal: Meal = {
+          ...data,
+          menu_item_categories: data.menu_item_categories.map((mc: any) => ({
+            categories: mc.categories
+              ? Array.isArray(mc.categories)
+                ? mc.categories
+                : [mc.categories]
+              : [],
+          })),
+        };
+
+        setMeal(normalizedMeal);
+      }
+
       setLoading(false);
     };
 
