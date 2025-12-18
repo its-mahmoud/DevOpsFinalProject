@@ -6,6 +6,7 @@ import Navbar from "../../../components/Navbar";
 import { supabase } from "../../../lib/supabaseClient";
 import { Plus, Minus, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { useCart } from "../../../context/CartContext";
 
 /* ================= Types ================= */
 
@@ -61,6 +62,34 @@ export default function MealDetailsPage() {
   >({});
   const [imgSrc, setImgSrc] = useState<string>("/images/fallbackimage.jpg");
 
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    if (!meal) return;
+
+    addToCart({
+      mealId: meal.id, // 🔑 مهم جدًا
+      name: meal.name,
+      image: imgSrc,
+      quantity,
+      notes,
+
+      options: Object.entries(selectedOptions).map(([optionId, value]) => {
+        const option = meal.options?.find((o) => o.id === optionId);
+        const selectedValue = option?.values.find((v) => v.value === value);
+
+        return {
+          optionId,
+          value,
+          label: selectedValue?.label || value, // ✅ هنا المهم
+        };
+      }),
+
+      basePrice: meal.price, // ✅ السعر الأساسي
+      optionsPrice, // ✅ مجموع الإضافات
+    });
+  };
+
   // ===== Fetch meal =====
   useEffect(() => {
     const fetchMeal = async () => {
@@ -107,6 +136,19 @@ export default function MealDetailsPage() {
 
     fetchMeal();
   }, [id]);
+  useEffect(() => {
+    if (!meal || !meal.options) return;
+
+    const defaults: Record<string, string> = {};
+
+    meal.options.forEach((option) => {
+      if (option.values.length > 0) {
+        defaults[option.id] = option.values[0].value; // ✅ أول خيار
+      }
+    });
+
+    setSelectedOptions(defaults);
+  }, [meal]);
 
   // ===== Update image when meal changes =====
   useEffect(() => {
@@ -258,11 +300,14 @@ export default function MealDetailsPage() {
 
             {/* ===== Price + Quantity + Add to Cart ===== */}
             <div className="flex items-center gap-4 mt-8">
-
               {/* Add to Cart */}
-              <button className="flex-1 bg-[#DC2B3F] text-white py-3 rounded-lg hover:bg-[#C02436] font-bold">
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 bg-[#DC2B3F] text-white py-3 rounded-lg hover:bg-[#C02436] font-bold"
+              >
                 إضافة إلى السلة
               </button>
+
               {/* Quantity */}
               <div className="flex items-center gap-2 border rounded-lg px-3 py-2">
                 <button
@@ -290,7 +335,6 @@ export default function MealDetailsPage() {
                 {totalPrice} ₪
               </div>
             </div>
-            
           </div>
         </div>
       </main>
