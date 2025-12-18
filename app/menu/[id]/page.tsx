@@ -6,6 +6,7 @@ import Navbar from "../../../components/Navbar";
 import { supabase } from "../../../lib/supabaseClient";
 import { Plus, Minus, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { useCart } from "../../../context/CartContext";
 
 /* ================= Types ================= */
 
@@ -60,6 +61,28 @@ export default function MealDetailsPage() {
     Record<string, string>
   >({});
   const [imgSrc, setImgSrc] = useState<string>("/images/fallbackimage.jpg");
+
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    if (!meal) return;
+
+    const cartItem = {
+      id: Date.now(), // unique cart id
+      name: meal.name,
+      image: imgSrc,
+      basePrice: meal.price,
+      quantity,
+      options: Object.entries(selectedOptions).map(([optionId, value]) => ({
+        optionId,
+        value,
+      })),
+      notes,
+      totalPrice,
+    };
+
+    addToCart(cartItem);
+  };
 
   // ===== Fetch meal =====
   useEffect(() => {
@@ -258,11 +281,14 @@ export default function MealDetailsPage() {
 
             {/* ===== Price + Quantity + Add to Cart ===== */}
             <div className="flex items-center gap-4 mt-8">
-
               {/* Add to Cart */}
-              <button className="flex-1 bg-[#DC2B3F] text-white py-3 rounded-lg hover:bg-[#C02436] font-bold">
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 bg-[#DC2B3F] text-white py-3 rounded-lg hover:bg-[#C02436] font-bold"
+              >
                 إضافة إلى السلة
               </button>
+
               {/* Quantity */}
               <div className="flex items-center gap-2 border rounded-lg px-3 py-2">
                 <button
@@ -290,7 +316,6 @@ export default function MealDetailsPage() {
                 {totalPrice} ₪
               </div>
             </div>
-            
           </div>
         </div>
       </main>

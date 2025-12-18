@@ -1,6 +1,9 @@
 import "./globals.css";
 import { Beiruti, Poppins } from "next/font/google";
 import { Toaster } from "sonner";
+import { CartProvider } from "context/CartContext";
+import { CartUIProvider } from "context/CartUIContext";
+import CartDrawer from "@/components/CartDrawer";
 
 const beiruti = Beiruti({
   subsets: ["arabic"],
@@ -20,12 +23,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar">
+    <html lang="ar" dir="rtl">
       <body
         className={`${beiruti.variable} ${poppins.variable} bg-[whitesmoke]`}
       >
-        {children}
-        <Toaster position="top-center" />
+        <CartProvider>
+          <CartUIProvider>
+            {/* Drawer global */}
+            <CartDrawer />
+
+            {/* الصفحات */}
+            {children}
+
+            <Toaster position="top-center" />
+          </CartUIProvider>
+        </CartProvider>
       </body>
     </html>
   );
