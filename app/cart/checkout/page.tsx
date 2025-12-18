@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import { useEffect } from "react";
 
 /* ================= Types ================= */
 
@@ -12,6 +14,51 @@ type Step = 1 | 2 | 3 | 4;
 export default function CheckoutPage() {
   const router = useRouter();
   const { items } = useCart();
+
+  const [branches, setBranches] = useState<
+    { id: number; name: string; city: string }[]
+  >([]);
+  const [selectedCity, setSelectedCity] = useState<string>("");
+
+  const [zones, setZones] = useState<
+    { id: number; city: string; area_name: string; delivery_price: number }[]
+  >([]);
+  const cities = Array.from(new Set(zones.map((z) => z.city)));
+
+  const [zoneId, setZoneId] = useState<string>("");
+  const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const { data, error } = await supabase
+        .from("branches")
+        .select("id, name, city")
+        .eq("is_active", true);
+
+      if (!error && data) {
+        setBranches(data);
+      }
+    };
+
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
+    const fetchZones = async () => {
+      const { data, error } = await supabase
+        .from("delivery_zones")
+        .select("id, city, area_name, delivery_price")
+        .eq("is_active", true);
+
+      if (!error && data) {
+        setZones(data);
+      }
+    };
+
+    fetchZones();
+  }, []);
+
+  const filteredZones = zones.filter((z) => z.city === selectedCity);
 
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
@@ -32,6 +79,68 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState("");
   const [branch, setBranch] = useState("");
 
+  const handleSubmit = async () => {
+    // 1) تجهيز أسعار الطلب
+    const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const finalDeliveryPrice = orderType === "delivery" ? deliveryPrice : 0;
+
+    const total = subtotal + finalDeliveryPrice;
+
+    // 2) تجهيز بيانات الطلب (Guest)
+    const guestName = `${contact.firstName} ${contact.lastName}`.trim();
+
+    // 3) إنشاء Order
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        order_type: orderType, // "delivery" | "pickup"
+        subtotal,
+        delivery_price: finalDeliveryPrice,
+        total_price: total,
+
+        guest_customer_name: guestName,
+        guest_phone: contact.phone,
+
+        branch_id: orderType === "pickup" ? Number(branch) : null,
+        // مؤقتًا نخزن العنوان في notes (بعدين نعمل user_address_id)
+        notes: orderType === "delivery" ? address : null,
+
+        status: "pending",
+        verification_status: "pending",
+      })
+      .select("id")
+      .single();
+
+    if (orderError || !order) {
+      console.error(orderError);
+      alert("فشل إنشاء الطلب");
+      return;
+    }
+
+    // 4) إنشاء Order Items
+    const orderItems = items.map((item) => ({
+      order_id: order.id,
+      menu_item_id: item.mealId,
+      quantity: item.quantity,
+      unit_price: item.unitPrice, // مهم: سعر القطعة (base + options)
+      options: item.options, // jsonb
+      notes: item.notes || null,
+    }));
+
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .insert(orderItems);
+
+    if (itemsError) {
+      console.error(itemsError);
+      alert("تم إنشاء الطلب لكن فشل حفظ العناصر");
+      return;
+    }
+
+    alert(`تم إرسال الطلب بنجاح! رقم الطلب: ${order.id}`);
+    // لاحقًا: router.push(`/order/${order.id}`)
+  };
+
   /* ================= Guards ================= */
 
   if (items.length === 0) {
@@ -42,6 +151,15 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
+  const selectedZone = zones.find((z) => z.id === Number(zoneId));
+
+  const fullDeliveryAddress =
+    orderType === "delivery"
+      ? `${selectedCity} – ${selectedZone?.area_name}\n${address}`
+      : "";
+
+  const selectedBranch = branches.find((b) => b.id === Number(branch));
 
   /* ================= UI ================= */
 
@@ -197,7 +315,11 @@ export default function CheckoutPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (orderType === "delivery" && !address) return;
+              if (
+                orderType === "delivery" &&
+                (!selectedCity || !zoneId || !address)
+              )
+                return;
               if (orderType === "pickup" && !branch) return;
               setStep(4);
             }}
@@ -208,14 +330,62 @@ export default function CheckoutPage() {
             </h2>
 
             {orderType === "delivery" ? (
-              <textarea
-                required
-                rows={4}
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="المدينة، الشارع، تفاصيل إضافية"
-                className="w-full border rounded-lg p-3 resize-none"
-              />
+              <>
+                {/* اختيار المدينة */}
+                <select
+                  required
+                  value={selectedCity}
+                  onChange={(e) => {
+                    setSelectedCity(e.target.value);
+                    setZoneId("");
+                    setDeliveryPrice(0);
+                  }}
+                  className="w-full border rounded-lg p-3"
+                >
+                  <option value="">اختر المدينة</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+
+                {/* اختيار منطقة التوصيل */}
+                <select
+                  required
+                  disabled={!selectedCity}
+                  value={zoneId}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setZoneId(selectedId);
+
+                    const zone = filteredZones.find(
+                      (z) => z.id === Number(selectedId)
+                    );
+
+                    setDeliveryPrice(zone ? zone.delivery_price : 0);
+                  }}
+                  className="w-full border rounded-lg p-3 disabled:bg-gray-100"
+                >
+                  <option value="">اختر منطقة التوصيل</option>
+
+                  {filteredZones.map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {z.area_name} (+{z.delivery_price} ₪)
+                    </option>
+                  ))}
+                </select>
+
+                {/* تفاصيل العنوان */}
+                <textarea
+                  required
+                  rows={3}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="تفاصيل العنوان (الشارع، البناية، الطابق)"
+                  className="w-full border rounded-lg p-3 resize-none"
+                />
+              </>
             ) : (
               <select
                 required
@@ -224,8 +394,12 @@ export default function CheckoutPage() {
                 className="w-full border rounded-lg p-3"
               >
                 <option value="">اختر الفرع</option>
-                <option value="nablus">نابلس</option>
-                <option value="ramallah">رام الله</option>
+
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name} – {b.city}
+                  </option>
+                ))}
               </select>
             )}
 
@@ -324,16 +498,36 @@ export default function CheckoutPage() {
                 <span className="text-gray-500">
                   {orderType === "delivery" ? "العنوان" : "الفرع"}
                 </span>
-                <span className="font-medium text-right max-w-[60%]">
-                  {orderType === "delivery" ? address : branch}
+                <span className="font-medium text-right max-w-[60%] whitespace-pre-line">
+                  {orderType === "delivery"
+                    ? fullDeliveryAddress
+                    : `${selectedBranch?.name} – ${selectedBranch?.city}`}
                 </span>
               </div>
             </div>
 
             {/* ================= Total ================= */}
-            <div className="flex justify-between items-center text-lg font-extrabold">
-              <span>الإجمالي</span>
-              <span className="text-[#DC2B3F]">{subtotal} ₪</span>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">السعر الفرعي</span>
+                <span className="font-medium">{subtotal} ₪</span>
+              </div>
+
+              {orderType === "delivery" && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">سعر التوصيل</span>
+                  <span className="font-medium">{deliveryPrice} ₪</span>
+                </div>
+              )}
+
+              <hr />
+
+              <div className="flex justify-between text-lg font-extrabold">
+                <span>الإجمالي</span>
+                <span className="text-[#DC2B3F]">
+                  {subtotal + (orderType === "delivery" ? deliveryPrice : 0)} ₪
+                </span>
+              </div>
             </div>
 
             {/* ================= Actions ================= */}
@@ -347,7 +541,8 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 className="flex-1 bg-[#DC2B3F] text-white py-3 rounded-lg font-bold"
               >
                 تأكيد وإرسال الطلب
