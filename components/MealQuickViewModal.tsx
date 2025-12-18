@@ -38,6 +38,20 @@ export default function MealQuickViewModal() {
       .then(({ data }) => setMeal(data));
   }, [mealId]);
 
+  useEffect(() => {
+    if (!meal?.options) return;
+
+    const defaults: Record<string, string> = {};
+
+    meal.options.forEach((opt: any) => {
+      if (opt.values?.length > 0) {
+        defaults[opt.id] = opt.values[0].value; // ✅ أول خيار
+      }
+    });
+
+    setSelectedOptions(defaults);
+  }, [meal]);
+
   if (!mealId || !meal) return null;
 
   // ===== حساب سعر الإضافات =====
@@ -173,7 +187,7 @@ export default function MealQuickViewModal() {
                 ),
 
                 basePrice: meal.price,
-                optionsPrice, 
+                optionsPrice,
               });
 
               closeMeal();

@@ -136,6 +136,19 @@ export default function MealDetailsPage() {
 
     fetchMeal();
   }, [id]);
+  useEffect(() => {
+    if (!meal || !meal.options) return;
+
+    const defaults: Record<string, string> = {};
+
+    meal.options.forEach((option) => {
+      if (option.values.length > 0) {
+        defaults[option.id] = option.values[0].value; // ✅ أول خيار
+      }
+    });
+
+    setSelectedOptions(defaults);
+  }, [meal]);
 
   // ===== Update image when meal changes =====
   useEffect(() => {

@@ -8,7 +8,6 @@ export type CartOption = {
   optionId: string;
   value: string;
   label: string;
-
 };
 
 export type CartItem = {
@@ -51,11 +50,17 @@ const optionsKey = (options: CartOption[]) =>
 /* ===== Provider ===== */
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
+  const [items, setItems] = useState<CartItem[]>([]);
+  useEffect(() => {
     const stored = localStorage.getItem("cart");
-    return stored ? JSON.parse(stored) : [];
-  });
+    if (stored) {
+      setItems(JSON.parse(stored));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(items));
+  }, [items]);
 
   /* ===== Add / Merge ===== */
   const addToCart = (
