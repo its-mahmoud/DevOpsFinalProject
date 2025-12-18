@@ -71,7 +71,6 @@ export default function MealDetailsPage() {
       id: Date.now(), // unique cart id
       name: meal.name,
       image: imgSrc,
-      basePrice: meal.price,
       quantity,
       options: Object.entries(selectedOptions).map(([optionId, value]) => ({
         optionId,

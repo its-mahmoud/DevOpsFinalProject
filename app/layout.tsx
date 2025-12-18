@@ -4,6 +4,8 @@ import { Toaster } from "sonner";
 import { CartProvider } from "context/CartContext";
 import { CartUIProvider } from "context/CartUIContext";
 import CartDrawer from "@/components/CartDrawer";
+import { MealQuickViewProvider } from "@/context/MealQuickViewContext";
+import MealQuickViewModal from "@/components/MealQuickViewModal";
 
 const beiruti = Beiruti({
   subsets: ["arabic"],
@@ -29,13 +31,16 @@ export default function RootLayout({
       >
         <CartProvider>
           <CartUIProvider>
-            {/* Drawer global */}
-            <CartDrawer />
+            <MealQuickViewProvider>
+              {/* Drawer global */}
+              <CartDrawer />
 
-            {/* الصفحات */}
-            {children}
+              {/* الصفحات */}
+              {children}
 
-            <Toaster position="top-center" />
+              <Toaster position="top-center" />
+              <MealQuickViewModal />
+            </MealQuickViewProvider>
           </CartUIProvider>
         </CartProvider>
       </body>

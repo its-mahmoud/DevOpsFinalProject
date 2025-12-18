@@ -13,9 +13,8 @@ export type CartItem = {
   id: number;
   name: string;
   image: string;
-  basePrice: number;
   quantity: number;
-  options: CartOption[];
+  options?: CartOption[];
   notes: string;
   totalPrice: number;
 };
