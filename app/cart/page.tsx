@@ -1,81 +1,133 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import Image from "next/image";
+import { Plus, Minus, Trash2 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
-  const { items, removeFromCart, clearCart } = useCart();
+  const { items, updateQuantity, removeFromCart } = useCart();
+  const router = useRouter();
 
-  const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">سلة الطلبات</h1>
+    <div dir="rtl" className="min-h-screen bg-[#F5F5F5]">
+      <Navbar variant="floating" />
 
-      {items.length === 0 && (
-        <p className="text-center text-gray-500">السلة فارغة</p>
-      )}
+      <main className="max-w-4xl mx-auto px-4 py-10 mt-14">
+        <h1 className="text-3xl font-extrabold mb-6">سلة الطلب</h1>
 
-      <div className="space-y-4">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="flex gap-4 border rounded-lg p-4"
-          >
-            <Image
-              src={item.image}
-              alt=""
-              width={80}
-              height={80}
-              className="rounded object-cover"
-            />
+        {items.length === 0 ? (
+          <p className="text-center text-gray-500">السلة فارغة</p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-4">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl p-4 shadow flex gap-4"
+                >
+                  <img
+                    src={item.image}
+                    className="w-20 h-20 rounded object-cover"
+                  />
 
-            <div className="flex-1">
-              <h3 className="font-bold">{item.name}</h3>
-              <p className="text-sm text-gray-500">
-                الكمية: {item.quantity}
-              </p>
-              {item.notes && (
-                <p className="text-sm text-gray-500">
-                  📝 {item.notes}
-                </p>
-              )}
+                  <div className="flex-1">
+                    <h3 className="font-bold">{item.name}</h3>
+
+                    {/* Options */}
+                    {item.options.length > 0 && (
+                      <ul className="text-sm text-gray-600 mt-1">
+                        {item.options.map((opt) => (
+                          <li key={opt.optionId}>• {opt.label}</li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {item.notes && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        📝 {item.notes}
+                      </p>
+                    )}
+
+                    {/* Quantity Row */}
+                    <div className="flex items-center justify-between mt-3">
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-2">
+                        {/* Minus */}
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                          className="w-8 h-8 bg-[#DC2B3F] text-white rounded-md flex items-center justify-center"
+                        >
+                          <Minus size={14} />
+                        </button>
+
+                        {/* Quantity */}
+                        <div className="w-10 h-8 border rounded-md flex items-center justify-center font-bold">
+                          {item.quantity}
+                        </div>
+
+                        {/* Plus */}
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                          className="w-8 h-8 bg-[#DC2B3F] text-white rounded-md flex items-center justify-center"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+
+                      {/* Delete (Opposite Side) */}
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="w-8 h-8 border rounded-md flex items-center justify-center text-gray-500 hover:text-red-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="font-bold text-[#DC2B3F] whitespace-nowrap">
+                    {item.totalPrice} ₪
+                  </div>
+                </div>
+              ))}
             </div>
+            <div className="bg-white rounded-xl p-6 shadow h-fit">
+              <h2 className="font-bold text-lg mb-4">ملخص الطلب</h2>
 
-            <div className="text-right">
-              <p className="font-bold text-[#DC2B3F]">
-                {item.totalPrice} ₪
-              </p>
+              <div className="flex justify-between mb-2">
+                <span>المجموع</span>
+                <span>{subtotal} ₪</span>
+              </div>
+
+              {/* لاحقًا */}
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>التوصيل</span>
+                <span>—</span>
+              </div>
+
+              <hr className="my-4" />
+
+              <div className="flex justify-between font-extrabold text-lg">
+                <span>الإجمالي</span>
+                <span className="text-[#DC2B3F]">{subtotal} ₪</span>
+              </div>
+
               <button
-                onClick={() => removeFromCart(item.id)}
-                className="text-sm text-gray-500 mt-2"
+                onClick={() => router.push("/cart/checkout")}
+                className="w-full bg-[#DC2B3F] text-white py-3 rounded-lg font-bold"
               >
-                حذف
+                تأكيد الطلب
               </button>
             </div>
           </div>
-        ))}
-      </div>
-
-      {items.length > 0 && (
-        <div className="mt-8 border-t pt-6">
-          <div className="flex justify-between text-xl font-bold mb-4">
-            <span>المجموع</span>
-            <span className="text-[#DC2B3F]">{total} ₪</span>
-          </div>
-
-          <button className="w-full bg-[#DC2B3F] text-white py-3 rounded-lg mb-2">
-            إتمام الطلب
-          </button>
-
-          <button
-            onClick={clearCart}
-            className="w-full text-sm text-gray-500"
-          >
-            تفريغ السلة
-          </button>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 }
