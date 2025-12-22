@@ -89,11 +89,12 @@ export default function CheckoutPage() {
     // 2) تجهيز بيانات الطلب (Guest)
     const guestName = `${contact.firstName} ${contact.lastName}`.trim();
 
+
     // 3) إنشاء Order
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
-        order_type: orderType, // "delivery" | "pickup"
+        order_type: orderType,
         subtotal,
         delivery_price: finalDeliveryPrice,
         total_price: total,
@@ -102,7 +103,11 @@ export default function CheckoutPage() {
         guest_phone: contact.phone,
 
         branch_id: orderType === "pickup" ? Number(branch) : null,
-        // مؤقتًا نخزن العنوان في notes (بعدين نعمل user_address_id)
+
+        // ✅ الجديد
+        delivery_zone_id: orderType === "delivery" ? Number(zoneId) : null,
+
+        // تفاصيل إضافية (شارع، بناية…)
         notes: orderType === "delivery" ? address : null,
 
         status: "pending",
