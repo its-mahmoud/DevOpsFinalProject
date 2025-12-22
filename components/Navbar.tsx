@@ -59,9 +59,9 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
       >
         <li><Link href="/">الرئيسية</Link></li>
         <li><Link href="/menu">قائمة الطعام</Link></li>
-        <li><Link href="/branches">موقعنا</Link></li>
+        <li><Link href="/branches">فروعنا</Link></li>
         <li><Link href="/about">حول</Link></li>
-        <li><Link href="/contact_us">تواصل معنا</Link></li>
+        <li><Link href="/contact">تواصل معنا</Link></li>
       </ul>
 
       <h2 className="text-[26px] font-bold text-[#e63946]">Malaky</h2>
