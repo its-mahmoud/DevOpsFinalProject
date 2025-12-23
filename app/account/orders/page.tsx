@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabaseClient";
-import { Package } from "lucide-react";
+import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import { useRouter } from "next/navigation";
 
 type Order = {
   id: number;
@@ -17,12 +17,13 @@ export default function OrdersPage() {
   const { user, loading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
 
     const fetchOrders = async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseBrowser
         .from("orders")
         .select("id, created_at, total_price, status")
         .eq("user_id", user.id)
@@ -42,7 +43,7 @@ export default function OrdersPage() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#F5F5F5]">
-      <Navbar />
+      <Navbar variant="floating" />
 
       <main className="max-w-4xl mx-auto px-4 py-28 space-y-6">
         <h1 className="text-3xl font-extrabold">طلباتي</h1>
@@ -58,24 +59,24 @@ export default function OrdersPage() {
         {orders.map((order) => (
           <div
             key={order.id}
-            className="bg-white rounded-2xl shadow-sm p-6 flex items-center justify-between"
+            onClick={() => router.push(`/account/orders/${order.id}`)}
+            className="
+      cursor-pointer
+      bg-white rounded-2xl shadow-sm
+      p-6 flex items-center justify-between
+      hover:shadow-md transition
+    "
           >
             <div>
-              <p className="font-bold text-gray-900">
-                طلب #{order.id}
-              </p>
+              <p className="font-bold text-gray-900">طلب #{order.id}</p>
               <p className="text-sm text-gray-500">
                 {new Date(order.created_at).toLocaleDateString("ar")}
               </p>
             </div>
 
             <div className="text-left">
-              <p className="font-bold text-[#DC2B3F]">
-                ₪ {order.total_price}
-              </p>
-              <p className="text-sm text-gray-500">
-                {order.status}
-              </p>
+              <p className="font-bold text-[#DC2B3F]">₪ {order.total_price}</p>
+              <p className="text-sm text-gray-500">{order.status}</p>
             </div>
           </div>
         ))}
@@ -83,3 +84,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+

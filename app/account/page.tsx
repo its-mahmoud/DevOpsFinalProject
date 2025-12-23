@@ -38,7 +38,7 @@ export default function AccountPage() {
 
         {/* بطاقة الطلبات */}
         <div
-          onClick={() => router.push("/orders")}
+          onClick={() => router.push("/account/orders")}
           className="
             cursor-pointer
             bg-white rounded-2xl shadow-md

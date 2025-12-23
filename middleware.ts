@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+
+type OrderOption = {
+  optionId: number;
+  label: string;
+  price?: number;
+};
+
+
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
@@ -39,6 +48,6 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/account/:path*",
-    "/orders/:path*",
   ],
 };
+
