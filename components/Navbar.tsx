@@ -86,7 +86,7 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
       <ul
         className={`md:flex gap-[30px] text-[#9f4949] text-[1.6em] ${
           open
-            ? "flex flex-col absolute top-full right-0 w-full bg-white shadow-md p-4"
+            ? "flex flex-col items-center absolute top-full right-0 w-full bg-white shadow-md p-4"
             : "hidden md:flex"
         }`}
       >
