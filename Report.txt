@@ -1,0 +1,206 @@
+Final Project Report
+DevOps – UNIX Environment & Tools
+Continuous Integration & Continuous Deployment (CI/CD)
+
+1. Introduction
+
+This final project was completed as part of the UNIX Environment & Tools (DevOps) course. The main objective of this project was not to focus on developing a complex software application, but rather to demonstrate a complete and automated DevOps workflow.
+
+The project aims to show how software development can evolve from manually managing source code into a fully automated Continuous Integration and Continuous Deployment (CI/CD) pipeline. This includes automated building, deployment, environment management, and handling real-world DevOps challenges.
+
+A full-stack application was used as a practical example, while the primary focus remained on the automation process itself.
+
+---------------------------------------------------------------------
+
+2. Project Requirements
+
+According to the course instructions, the following requirements were defined:
+
+1. Develop or use any software application (the functionality itself is not the main focus).
+2. Store the source code in a GitHub repository.
+3. Configure Jenkins to monitor the repository using polling.
+4. When changes are detected:
+   - Automatically pull the latest code.
+   - Build a new version of the application.
+   - Stop the old running containers.
+   - Deploy the new version automatically.
+5. Use Docker and Docker Compose.
+6. Run the entire system on a Linux server (Ubuntu Server).
+7. Document challenges faced during the project and explain how they were solved.
+
+---------------------------------------------------------------------
+
+3. Software Overview
+
+For this project, a full-stack restaurant store application was used. The application is built using:
+
+- Next.js for frontend and backend
+- Supabase for database, authentication, and backend services
+
+It is important to note that the application itself was not the evaluation target. It served only as a tool to demonstrate DevOps concepts such as automation, containerization, and deployment.
+
+---------------------------------------------------------------------
+
+4. Technologies and Tools Used
+
+Operating Systems:
+- Ubuntu (local machine)
+- Ubuntu Server (Oracle VirtualBox)
+
+Version Control:
+- Git
+- GitHub
+
+DevOps Tools:
+- Jenkins
+- Docker
+- Docker Compose
+
+Application Technologies:
+- Node.js
+- Next.js
+- Supabase
+
+Remote Access:
+- SSH
+- Visual Studio Code (Remote SSH)
+
+---------------------------------------------------------------------
+
+5. System Architecture
+
+The CI/CD system follows these steps:
+
+1. The developer modifies the source code locally.
+2. The changes are pushed to the GitHub repository.
+3. Jenkins continuously monitors the repository using polling.
+4. Once a change is detected:
+   - Jenkins pulls the latest code.
+   - A new Docker image is built.
+   - Old containers are stopped.
+   - New containers are started using Docker Compose.
+5. The updated application becomes immediately available on the server.
+
+This workflow represents a complete CI/CD pipeline.
+
+---------------------------------------------------------------------
+
+6. Jenkins Pipeline Configuration
+
+The automation logic is defined using a Jenkinsfile.
+
+Pipeline Stages:
+
+1. Checkout Stage  
+   Jenkins pulls the latest source code from GitHub.
+
+2. Build Stage  
+   Jenkins builds a new Docker image using:
+   docker-compose build
+
+3. Deploy Stage  
+   Jenkins stops the old containers and starts new ones:
+   docker-compose down
+   docker-compose up -d
+
+4. Cleanup Stage  
+   Old unused Docker images are removed:
+   docker image prune -f
+
+---------------------------------------------------------------------
+
+7. Secrets Management
+
+Problem:
+The application requires sensitive environment variables for Supabase, such as:
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+These values must not be:
+- Stored in the source code
+- Uploaded to GitHub
+- Stored in plain text files on the server
+
+Solution:
+Jenkins Credentials were used to securely store these sensitive values.
+
+The credentials are:
+- Stored securely inside Jenkins
+- Injected into the pipeline as environment variables
+- Passed to Docker during both build-time and runtime
+
+This approach follows best practices in DevOps security.
+
+---------------------------------------------------------------------
+
+8. Docker and Docker Compose Usage
+
+Dockerfile:
+- Defines a consistent build environment.
+- Installs dependencies.
+- Builds the Next.js application.
+- Runs the application inside a container.
+
+Docker Compose:
+- Manages container lifecycle.
+- Passes environment variables securely.
+- Controls ports and restart policies.
+- Simplifies deployment with a single command.
+
+---------------------------------------------------------------------
+
+9. Challenges Faced and Solutions
+
+Challenge 1: Docker was not available inside Jenkins  
+Solution: Docker was installed inside the Jenkins container.
+
+Challenge 2: docker-compose command not found  
+Solution: docker-compose was installed inside the Jenkins container.
+
+Challenge 3: Permission denied when accessing docker.sock  
+Cause: Docker group ID mismatch between the host system and Jenkins container.  
+Solution: The Docker group ID inside the Jenkins container was aligned with the host system.
+
+Challenge 4: Application build failed due to missing environment variables  
+Cause: Supabase credentials were not available during build-time.  
+Solution: Jenkins Credentials were used to inject environment variables securely.
+
+Challenge 5: Accumulation of old Docker images  
+Solution: A cleanup stage was added to the Jenkins pipeline.
+
+---------------------------------------------------------------------
+
+10. Current Project Status
+
+- Jenkins pipeline runs successfully.
+- Any push to GitHub triggers automatic deployment.
+- No secrets are exposed in the repository.
+- The application runs inside Docker containers.
+- The system is stable and fully automated.
+
+---------------------------------------------------------------------
+
+11. Conclusion
+
+This project successfully demonstrates a real-world DevOps workflow. It shows how automation can be applied to software development using CI/CD principles.
+
+The project implements:
+- Continuous Integration
+- Continuous Deployment
+- Containerization
+- Secure secrets management
+- Linux server automation
+
+The main focus was not on the software itself, but on building a reliable, automated, and scalable DevOps pipeline.
+
+---------------------------------------------------------------------
+
+12. Final Notes
+
+- The project represents a realistic DevOps environment.
+- The challenges encountered are common in real industry scenarios.
+- The solutions applied follow best practices.
+- The system can be extended in the future to include:
+  - Webhooks
+  - Monitoring tools
+  - Multiple deployment environments
