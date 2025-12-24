@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Pull Code') {
-            steps {
-                git 'git@github.com:its-mahmoud/DevOpsFinalProject.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker compose build'
@@ -21,7 +15,6 @@ pipeline {
                 sh 'docker compose up -d'
             }
         }
-
 
         stage('Cleanup Old Images') {
             steps {
