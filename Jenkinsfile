@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        NEXT_PUBLIC_SUPABASE_URL = credentials('SUPABASE_URL')
+        NEXT_PUBLIC_SUPABASE_ANON_KEY = credentials('SUPABASE_ANON_KEY')
+    }
+
     stages {
 
         stage('Build Docker Image') {
