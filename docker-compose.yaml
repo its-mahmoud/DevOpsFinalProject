@@ -1,13 +1,13 @@
 services:
   web:
     build:
-      context: .
+      context: . # The context is set to the current directory, where the Dockerfile is located.
       args:
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL} # Passing the Supabase URL as a build-time argument.
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY} # Passing the Supabase anon key as a build-time argument.
     environment:
-      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL} # Setting the Supabase URL as an environment variable inside the container.
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY} # Setting the Supabase anon key as an environment variable inside the container.
     ports:
-      - "3000:3000"
-    restart: always
+      - "3000:3000" # Exposing port 3000 of the container to port 3000 on the host machine.
+    restart: always # Ensuring the container restarts automatically if it stops.
